@@ -5,7 +5,7 @@ import time
 import json
 import tqdm
 
-BUFFER_SIZE =  2 * 4096
+BUFFER_SIZE =  1 * 4096
 SEPARATOR = "<SEPARATOR>"
 
 
@@ -58,14 +58,18 @@ class FileTransfer:
             self.server.send_data("quit")
             return
         self.server.send_data(filename)
+        print(filename)
         received = self.server.conn.recv(BUFFER_SIZE).decode()
         filename, filesize = received.split(SEPARATOR)
         # remove absolute path if there is
         filename = os.path.basename(filename)
         # convert to integer
         filesize = int(filesize)
+        download_folder = "Downloads_folder"
+        if not os.path.exists(download_folder):
+            os.makedirs(download_folder)
         count = 0
-        with open(filename, "wb") as file:
+        with open(download_folder + "/" + filename, "wb") as file:
             
             while True:
                 data_buffer = self.server.conn.recv(BUFFER_SIZE)
@@ -77,7 +81,7 @@ class FileTransfer:
                     break
                 file.write(data_buffer)
         display_msg("File Downloaded successfully")
-        time.sleep(10)
+        time.sleep(5)
 
 
 def upload(server):

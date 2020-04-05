@@ -1,4 +1,5 @@
 from core.utils import display_msg
+import time
 class ReverseShell:
 
     def run_commands(self, server):
@@ -18,6 +19,7 @@ class ReverseShell:
             else:
                 cmd_result = server.receive_data()
                 print(cmd_result)
+            time.sleep(0.1)    
             pwd = server.receive_data()
 
 

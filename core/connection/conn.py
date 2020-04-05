@@ -55,17 +55,23 @@ class Server:
         data_to_send = data + self.DELIMETER
         data_bin = data_to_send.encode()
         self.conn.send(data_bin)
-        
+
+
     def receive_data(self):
         data = b''
         while True:
             chunk = self.conn.recv(self.CHUNK_SIZE)
 
-            if chunk.endswith(self.DELIMETER.encode()):
+            if self.DELIMETER.encode() in chunk:
+                # print("")
+                
                 chunk = chunk[:-len(self.DELIMETER)]
+                # print(chunk.decode())
+                # print()
                 data += chunk
                 break
             data += chunk
+        # display_msg("Received Results completely")
         return data.decode()
 
     def send(self, msg=""):
