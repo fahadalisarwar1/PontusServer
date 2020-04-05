@@ -3,6 +3,10 @@ from glob import glob
 import os
 import time
 import json
+import tqdm
+
+BUFFER_SIZE =  2 * 4096
+SEPARATOR = "<SEPARATOR>"
 
 
 class FileTransfer:
@@ -48,6 +52,33 @@ class FileTransfer:
         display_msg("File/Folder " + filename + " downloaded successfully")
         time.sleep(2)
 
+    def download_fancy(self, filename):
+        display_msg("Downloading Files")
+        if filename == "quit":
+            self.server.send_data("quit")
+            return
+        self.server.send_data(filename)
+        received = self.server.conn.recv(BUFFER_SIZE).decode()
+        filename, filesize = received.split(SEPARATOR)
+        # remove absolute path if there is
+        filename = os.path.basename(filename)
+        # convert to integer
+        filesize = int(filesize)
+        count = 0
+        with open(filename, "wb") as file:
+            
+            while True:
+                data_buffer = self.server.conn.recv(BUFFER_SIZE)
+                count += 1
+                data_received = count * BUFFER_SIZE
+                prog = (data_received / filesize) * 100
+                print(" \t\tProgress: "+str(int(prog)) +"\t"+str(data_received)+ "\r", end="")             
+                if "DONE_SENDING".encode() in data_buffer:
+                    break
+                file.write(data_buffer)
+        display_msg("File Downloaded successfully")
+        time.sleep(10)
+
 
 def upload(server):
     
@@ -82,6 +113,7 @@ def upload(server):
     ft.upload_file(filename)
 
 def download(server):
+
     full_list_of_files = b''
     while True:
         chunk = server.conn.recv(server.CHUNK_SIZE)
@@ -92,14 +124,14 @@ def download(server):
         full_list_of_files += chunk
 
     files = json.loads(full_list_of_files)
-    print(files)
+    # print(files)
     for index in files:
         print("\t\t", index, "\t", files[index])
 
     try:
         file_index = input("[+] Enter the file / folder you want to download ")
         file_2_download = files[file_index]
-        print(file_2_download)
+        # print(file_2_download)
     except Exception as err:
         file_2_download = "quit"
         print(err)
@@ -107,4 +139,6 @@ def download(server):
         time.sleep(10)
     
     ft = FileTransfer(server)
-    ft.download_files(file_2_download)
+    # ft.download_files(file_2_download)
+    ft.download_fancy(file_2_download)
+

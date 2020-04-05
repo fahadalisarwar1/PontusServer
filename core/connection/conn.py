@@ -25,7 +25,7 @@ class Server:
         """     
 
         self.DELIMETER = "<END_OF_BYTES>"
-        self.CHUNK_SIZE = 4 * 1024
+        self.CHUNK_SIZE = 64 * 1024
         try:
             self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
             self.addr = (ip, port)
