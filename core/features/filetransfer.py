@@ -76,7 +76,8 @@ class FileTransfer:
                 count += 1
                 data_received = count * BUFFER_SIZE
                 prog = (data_received / filesize) * 100
-                print(" \t\tProgress: "+str(int(prog)) +"\t"+str(data_received)+ "\r", end="")             
+                print(" \t\tProgress: "+str(int(prog)) +"\t"+str(data_received)+ "\r", end="")  
+                           
                 if "DONE_SENDING".encode() in data_buffer:
                     break
                 file.write(data_buffer)

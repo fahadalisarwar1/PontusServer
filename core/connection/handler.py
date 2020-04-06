@@ -10,11 +10,13 @@ init()
 
 
 def show_options():
-    clear_screen()
+    
     print(Fore.GREEN + "\t\t[ 01 ] Reverse Shell"+ Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 02 ] Upload files" + Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 03 ] Download files and folders" + Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 04 ] Become Persistant " + Style.RESET_ALL)
+    print(Fore.GREEN + "\t\t[ 05 ] Run File " + Style.RESET_ALL)
+    
     
     print('\n')
     print(Fore.YELLOW + "\t\t[ ** ] Enter 'stop', 'quit' or 'exit'  to stop"+ Style.RESET_ALL)
