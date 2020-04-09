@@ -117,8 +117,7 @@ def upload(server):
     ft = FileTransfer(server)
     ft.upload_file(filename)
 
-def download(server):
-
+def get_dir_from_remote(server):
     full_list_of_files = b''
     while True:
         chunk = server.conn.recv(server.CHUNK_SIZE)
@@ -141,9 +140,15 @@ def download(server):
         file_2_download = "quit"
         print(err)
         display_msg(str(err), "r")
-        time.sleep(10)
-    
+        time.sleep(3)
+    return file_2_download
+
+def download(server):
+
+    file_2_download = get_dir_from_remote(server)
+
     ft = FileTransfer(server)
     # ft.download_files(file_2_download)
+
     ft.download_fancy(file_2_download)
 
