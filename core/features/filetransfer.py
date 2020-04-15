@@ -12,53 +12,41 @@ SEPARATOR = "<SEPARATOR>"
 class FileTransfer:
     def __init__(self, server):
         self.server = server
-
-    def upload_file(self, filename):
+    
+    def upload_with_tqdm(self, filename):
         if filename == "quit":
-            self.server.send_data("quit")
+            self.server.send_data(filename)
             return
-        display_msg("Upload Files to client")
-        file_data = b''
-        with open(filename, "rb") as file:
-            file_data = file.read()
-        only_filename = os.path.basename(filename)
-        self.server.send_data(only_filename)
-        data_with_delimeter = file_data + self.server.DELIMETER.encode()
-        self.server.conn.send(data_with_delimeter)
-        display_msg("File "+ only_filename + " Uploaded successfully")
-        time.sleep(4)
+        else:
+            self.server.send_data("pass")
 
+        filesize = os.path.getsize(filename)
 
-    def download_files(self, filename):
+        self.server.conn.send(f"{filename}{SEPARATOR}{filesize}".encode())
+        progress = tqdm.tqdm(range(filesize), f"Sending {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+        with open(filename, "rb") as f:
+            for _ in progress:
+                # read the bytes from the file
+                bytes_read = f.read(BUFFER_SIZE)
+                if not bytes_read:
+                    # file transmitting is done
+                    break
+                # we use sendall to assure transimission in 
+                # busy networks
+                self.server.conn.sendall(bytes_read)
+                # update the progress bar
+                progress.update(len(bytes_read))
+            self.server.conn.send(SEPARATOR.encode())
+        display_msg("Successfully uploaded")
+
+    
+    def download_with_tqdm(self, filename):
         display_msg("Downloading Files")
         if filename == "quit":
             self.server.send_data("quit")
             return
         self.server.send_data(filename)
-
-        zipped_name = self.server.receive_data()
-        file_data = b''
-        while True:
-            chunk = self.server.conn.recv(self.server.CHUNK_SIZE)
-
-            if chunk.endswith(self.server.DELIMETER.encode()):
-                chunk  = chunk[:-len(self.server.DELIMETER)]
-                file_data += chunk
-                break
-            file_data += chunk
-
-        with open(zipped_name, "wb") as file:
-            file.write(file_data)
-        display_msg("File/Folder " + filename + " downloaded successfully")
-        time.sleep(2)
-
-    def download_fancy(self, filename):
-        display_msg("Downloading Files")
-        if filename == "quit":
-            self.server.send_data("quit")
-            return
-        self.server.send_data(filename)
-        print(filename)
+        # print(filename)
         received = self.server.conn.recv(BUFFER_SIZE).decode()
         filename, filesize = received.split(SEPARATOR)
         # remove absolute path if there is
@@ -68,21 +56,26 @@ class FileTransfer:
         download_folder = "Downloads_folder"
         if not os.path.exists(download_folder):
             os.makedirs(download_folder)
-        count = 0
-        with open(download_folder + "/" + filename, "wb") as file:
-            
-            while True:
-                data_buffer = self.server.conn.recv(BUFFER_SIZE)
-                count += 1
-                data_received = count * BUFFER_SIZE
-                prog = (data_received / filesize) * 100
-                print(" \t\tProgress: "+str(int(prog)) +"\t"+str(data_received)+ "\r", end="")  
-                           
-                if "DONE_SENDING".encode() in data_buffer:
+                
+        file_name_to_save = download_folder + "/"+filename
+        progress = tqdm.tqdm(range(filesize), f"Receiving {filename}", unit="B", unit_scale=True, unit_divisor=1024)
+        with open(file_name_to_save, "wb") as f:
+            for _ in progress:
+                # read 1024 bytes from the socket (receive)
+                bytes_read = self.server.conn.recv(BUFFER_SIZE)
+                if SEPARATOR.encode() in bytes_read:
+                    bytes_read = bytes_read[:-len(SEPARATOR)]    
+                    f.write(bytes_read)
+                    # nothing is received
+                    # file transmitting is done
                     break
-                file.write(data_buffer)
-        display_msg("File Downloaded successfully")
-        time.sleep(5)
+                
+                # write to the file the bytes we just received
+                f.write(bytes_read)
+                # update the progress bar
+                progress.update(len(bytes_read))
+
+
 
 
 def upload(server):
@@ -115,7 +108,7 @@ def upload(server):
                 break
 
     ft = FileTransfer(server)
-    ft.upload_file(filename)
+    ft.upload_with_tqdm(filename)
 
 def get_dir_from_remote(server):
     full_list_of_files = b''
@@ -133,7 +126,7 @@ def get_dir_from_remote(server):
         print("\t\t", index, "\t", files[index])
 
     try:
-        file_index = input("[+] Enter the file / folder you want to download ")
+        file_index = input("[+] select the file ")
         file_2_download = files[file_index]
         # print(file_2_download)
     except Exception as err:
@@ -150,5 +143,6 @@ def download(server):
     ft = FileTransfer(server)
     # ft.download_files(file_2_download)
 
-    ft.download_fancy(file_2_download)
+    # ft.download_fancy(file_2_download)
+    ft.download_with_tqdm(file_2_download)
 

